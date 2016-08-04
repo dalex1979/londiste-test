@@ -98,5 +98,5 @@ host    all             all             ::1/128                 md5
 #host    replication     postgres        127.0.0.1/32            md5
 #host    replication     postgres        ::1/128                 md5
 host	all		all		{{ item.app_ip }}	md5
-host    all             all             138.201.172.8/32        trust
-host	all		all		138.201.188.181/32	trust
+host    all             all             srv1                    trust
+host	all		all		srv2			trust
