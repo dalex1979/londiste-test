@@ -1,0 +1,48 @@
+- name: create pg_hba
+  template: src=roles/master/files/pg_hba.tmpl dest=/etc/postgresql/9.4/main/pg_hba.conf
+  with_items:
+    - { app_ip: 78.46.44.141/32 }
+
+- name: create postgresql.conf
+  template: src=roles/master/files/postgresql.tmpl dest=/etc/postgresql/9.4/main/postgresql.conf
+  with_items:
+    - { port: 5432 }
+
+- name: restart postgre
+  service: name=postgresql state=restarted
+
+- name: copy database
+  copy: src=roles/all/files/world.sql dest=/root/world.sql
+
+- name: prepare DB
+  shell: /usr/bin/dropdb -U postgres --if-exists world
+- shell: /usr/bin/createdb -U postgres world
+- shell: /usr/bin/psql -U postgres world </root/world.sql
+
+- name: install postgresql-9.4-pgq3
+  copy: src=roles/master/files/postgresql-9.4-pgq3_3.2-2_amd64.deb dest=/root/postgresql-9.4-pgq3_3.2-2_amd64.deb
+- apt: deb=/root/postgresql-9.4-pgq3_3.2-2_amd64.deb
+
+- name: londiste ini
+  copy: src=roles/master/files/master-londiste.ini dest=/etc/skytools/master-londiste.ini
+
+- name: init londiste
+  shell: sudo -u postgres londiste3 /etc/skytools/master-londiste.ini create-root master-node "dbname=world host=srv1"
+
+- name: pgqd ini
+  copy: src=roles/master/files/pgqd.ini dest=/etc/skytools/pgqd.ini
+
+- name: stop pgqd
+  shell: /usr/bin/pgqd -d /etc/skytools/pgqd.ini -s
+
+- name: stop londiste
+  shell: sudo -u postgres londiste3 -d /etc/skytools/master-londiste.ini -s
+
+- name: start pgqd
+  shell: /usr/bin/pgqd -d /etc/skytools/pgqd.ini
+
+- name: start londiste
+  shell: sudo -u postgres londiste3 -d /etc/skytools/master-londiste.ini worker
+
+- name: add tables to replication
+  shell: sudo -u postgres londiste3 /etc/skytools/master-londiste.ini add-table city

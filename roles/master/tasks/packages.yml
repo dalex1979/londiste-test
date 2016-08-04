@@ -1,0 +1,4 @@
+- name: install reqired packages
+  action: apt pkg={{item}} state=installed
+  with_items:
+    - postgresql-9.4

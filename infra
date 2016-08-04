@@ -1,0 +1,4 @@
+[master]
+srv1 ansible_ssh_host=138.201.172.8
+[slave]
+srv2 ansible_ssh_host=138.201.188.181

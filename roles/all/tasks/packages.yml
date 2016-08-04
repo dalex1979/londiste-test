@@ -1,0 +1,5 @@
+- name: install reqired packages
+  action: apt pkg={{item}} state=installed
+  with_items:
+    - skytools3
+    - skytools3-ticker

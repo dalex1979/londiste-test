@@ -1,0 +1,35 @@
+- name: create pg_hba
+  template: src=roles/slave/files/pg_hba.tmpl dest=/etc/postgresql/9.5/main/pg_hba.conf
+  with_items:
+    - { app_ip: 78.46.44.141/32 }
+
+- name: create postgresql.conf
+  template: src=roles/slave/files/postgresql.tmpl dest=/etc/postgresql/9.5/main/postgresql.conf
+  with_items:
+    - { port: 5432 }
+
+- name: restart postgre
+  service: name=postgresql state=restarted
+
+- name: copy database
+  copy: src=roles/all/files/world.sql dest=/root/world.sql
+
+- name: prepare DB
+  shell: /usr/bin/dropdb -U postgres --if-exists world
+- shell: /usr/bin/createdb -U postgres world
+- shell: /usr/bin/psql -U postgres world </root/world.sql
+
+- name: londiste ini
+  copy: src=roles/slave/files/slave-londiste.ini dest=/etc/skytools/slave-londiste.ini
+
+- name: init londiste
+  shell: sudo -u postgres londiste3 /etc/skytools/slave-londiste.ini create-leaf slave-server 'dbname=world host=srv2' --provider='dbname=world host=srv1'
+
+- name: stop londiste
+  shell: sudo -u postgres londiste3 -d /etc/skytools/slave-londiste.ini -s
+
+- name: start londiste
+  shell: sudo -u postgres londiste3 -d /etc/skytools/slave-londiste.ini worker
+
+- name: add tables to replication
+  shell: sudo -u postgres londiste3 /etc/skytools/slave-londiste.ini add-table city

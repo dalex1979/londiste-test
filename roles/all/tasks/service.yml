@@ -1,0 +1,10 @@
+- name: install pgsql repo
+  apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main' state=present filename='pgdg'
+- apt_key: url=https://www.postgresql.org/media/keys/ACCC4CF8.asc state=present
+
+- name: update apt-get
+  shell: apt-get update
+
+- name: fix rights
+  file: path=/var/log/skytools state=directory mode=0775 owner=skytools group=postgres
+- file: path=/run/skytools state=directory mode=0775 owner=skytools group=postgres
